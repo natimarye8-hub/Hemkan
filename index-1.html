@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101014">
+<title>HEMKAN — Movies & Series</title>
+<style>
+:root{--bg:#101014;--panel:#19191f;--muted:#a5a5b1;--red:#e50932;--white:#f7f7fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--white);font-family:Arial,Helvetica,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#101014ed;backdrop-filter:blur(12px);border-bottom:1px solid #292931;padding:15px 5%;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{font-size:27px;font-weight:900;letter-spacing:2px;color:var(--red)}.logo span{color:white}
+nav{display:flex;gap:20px}nav button,.filter button{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:8px}
+nav button.active,.filter button.active{color:white;border-bottom:2px solid var(--red)}
+.search{background:#22222a;border:1px solid #353540;color:white;border-radius:22px;padding:11px 15px;width:min(260px,40vw);outline:none}
+main{max-width:1200px;margin:auto;padding:25px 5% 60px}
+.hero{min-height:310px;border-radius:20px;padding:35px;display:flex;align-items:end;background:linear-gradient(90deg,#08080bf2 0%,#08080b88 55%,#08080b20),url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1400') center/cover;margin-bottom:30px}
+.hero small{color:#ff6680;letter-spacing:2px;font-weight:bold}.hero h1{font-size:clamp(30px,5vw,52px);margin:10px 0}.hero p{color:#dedee5;max-width:480px;line-height:1.5}
+.primary{background:var(--red);border:0;color:white;border-radius:8px;padding:12px 19px;font-weight:bold;cursor:pointer}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0 15px}.section-head h2{margin:0;font-size:22px}
+.filter{display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px}
+.card{background:var(--panel);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .2s}.card:hover{transform:translateY(-4px)}
+.poster{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:#292932}
+.info{padding:11px}.info h3{font-size:15px;margin:0 0 7px}.meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.heart{float:right;color:#ff526f;background:none;border:0;font-size:20px;cursor:pointer;padding:0 0 5px 8px}
+.empty{color:var(--muted);padding:25px 0}.footer{border-top:1px solid #292931;color:var(--muted);text-align:center;padding:25px;font-size:12px}
+.modal{display:none;position:fixed;inset:0;background:#000b;z-index:10;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}
+.dialog{background:#1b1b23;border:1px solid #34343d;border-radius:16px;max-width:650px;width:100%;padding:22px;position:relative}.close{position:absolute;right:15px;top:12px;background:none;color:white;border:0;font-size:25px;cursor:pointer}
+.dialog p{color:#c4c4ce;line-height:1.6}.notice{font-size:12px;color:#aaa}
+@media(max-width:850px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}nav{gap:7px}}
+@media(max-width:560px){header{flex-wrap:wrap}nav{order:3;width:100%;justify-content:space-between}.search{width:48vw}.hero{min-height:270px;padding:22px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.section-head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">HEM<span>KAN</span></div>
+  <nav>
+    <button class="active" data-tab="All">Home</button>
+    <button data-tab="Movie">Movies</button>
+    <button data-tab="Series">Series</button>
+    <button data-tab="Ethiopian">Ethiopian</button>
+    <button data-tab="International">International</button>
+    <button data-tab="Favorites">My List</button>
+  </nav>
+  <input class="search" id="search" placeholder="Search titles..." aria-label="Search titles">
+</header>
+<main>
+  <section class="hero">
+    <div>
+      <small>WELCOME TO HEMKAN</small>
+      <h1>Stories worth watching.</h1>
+      <p>Explore movies and series in one place. Find your next favorite story.</p>
+      <button class="primary" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Explore now</button>
+    </div>
+  </section>
+  <div class="section-head">
+    <h2 id="heading">Discover</h2>
+    <div class="filter" id="filters">
+      <button class="active" data-filter="All">All</button>
+      <button data-filter="Movie">Movies</button>
+      <button data-filter="Series">Series</button>
+    </div>
+  </div>
+  <section id="catalog" class="grid" aria-live="polite"></section>
+  <p class="notice">Demo catalog: sample titles and poster artwork are for layout testing. Add only content you own, have licensed, or are authorized to share.</p>
+</main>
+<div class="footer">© 2026 HEMKAN · Movies & Series · Demo website</div>
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="dialog"><button class="close" onclick="closeModal()">×</button><h2 id="modalTitle"></h2><p id="modalText"></p><p class="notice">This is a design preview. Authorized trailers or licensed playback can be connected in a later version.</p></div>
+</div>
+<script>
+const items=[
+ {id:1,title:"The Last Horizon",type:"Movie",region:"International",year:2025,genre:"Adventure",rating:"8.1",img:"https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=500"},
+ {id:2,title:"City of Shadows",type:"Series",region:"International",year:2024,genre:"Mystery",rating:"8.4",img:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=500"},
+ {id:3,title:"Beyond the Stars",type:"Movie",region:"International",year:2025,genre:"Sci-Fi",rating:"7.9",img:"https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=500"},
+ {id:4,title:"Hidden Truth",type:"Series",region:"International",year:2023,genre:"Drama",rating:"8.6",img:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=500"},
+ {id:5,title:"The Wild Road",type:"Movie",region:"International",year:2024,genre:"Action",rating:"7.8",img:"https://images.unsplash.com/photo-1500534623283-312aade485b7?w=500"},
+ {id:6,title:"Deep Blue",type:"Series",region:"International",year:2025,genre:"Documentary",rating:"8.2",img:"https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=500"},
+ {id:7,title:"Night Runner",type:"Movie",region:"International",year:2023,genre:"Thriller",rating:"7.7",img:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=500"},
+ {id:8,title:"New Beginnings",type:"Series",region:"International",year:2024,genre:"Drama",rating:"8.0",img:"https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=500"},
+ {id:9,title:"Addis Stories",type:"Movie",region:"Ethiopian",year:2025,genre:"Drama",rating:"—",img:"https://images.unsplash.com/photo-1519608487953-e999c86e7455?w=500"},
+ {id:10,title:"Across the Highlands",type:"Series",region:"Ethiopian",year:2025,genre:"Adventure",rating:"—",img:"https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500"}
+];
+let tab="All", filter="All", favorites=JSON.parse(localStorage.getItem("hemkan-favs")||"[]");
+const catalog=document.getElementById("catalog");
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const shown=items.filter(x=>(tab==="All"||tab===x.type||tab==="Ethiopian"&&x.region==="Ethiopian"||tab==="International"&&x.region==="International"||tab==="Favorites"&&favorites.includes(x.id))&&(filter==="All"||filter===x.type)&&(`${x.title} ${x.genre} ${x.year}`.toLowerCase().includes(q)));
+ document.getElementById("heading").textContent=tab==="Favorites"?"My List":tab==="All"?"Discover":tab+"s";
+ catalog.innerHTML=shown.length?shown.map(x=>`<article class="card" onclick="openItem(${x.id})"><img class="poster" src="${x.img}" alt="${x.title} poster" loading="lazy"><div class="info"><button class="heart" aria-label="Toggle favorite" onclick="event.stopPropagation();toggleFav(${x.id})">${favorites.includes(x.id)?"♥":"♡"}</button><h3>${x.title}</h3><div class="meta"><span>${x.year} · ${x.type}</span><span>${x.region==="Ethiopian"?"ET":"INT"} · ★ ${x.rating}</span></div></div></article>`).join(""):'<p class="empty">No titles found. Try another search.</p>';
+}
+function toggleFav(id){favorites=favorites.includes(id)?favorites.filter(v=>v!==id):[...favorites,id];localStorage.setItem("hemkan-favs",JSON.stringify(favorites));render()}
+function openItem(id){const x=items.find(v=>v.id===id);document.getElementById("modalTitle").textContent=x.title;document.getElementById("modalText").textContent=`${x.type} · ${x.year} · ${x.genre} · ★ ${x.rating}. This sample title is included to preview the HEMKAN layout.`;document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("nav button").forEach(v=>v.classList.remove("active"));b.classList.add("active");tab=b.dataset.tab;filter="All";document.querySelectorAll("#filters button").forEach(v=>v.classList.toggle("active",v.dataset.filter==="All"));render()}));
+document.querySelectorAll("#filters button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#filters button").forEach(v=>v.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()}));
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
