@@ -96,6 +96,63 @@ document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()
 document.querySelectorAll("#filters button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#filters button").forEach(v=>v.classList.remove("active"));b.classList.add("active");filter=b.dataset.filter;render()}));
 document.getElementById("search").addEventListener("input",render);
 render();
+  function fetchTelegramMovies() {
+    var BOT_TOKEN = '8486206907:AAFissSGeusB5FwGEHQVo-cEZzgEHZ1f6-U';
+    var url = 'https://telegram.com' + BOT_TOKEN + '/getUpdates';
+
+    if (typeof items === 'undefined') {
+        window.items = [];
+    }
+
+    fetch(url)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            var results = data.result;
+            if (!results) return;
+
+            results.forEach(function(item) {
+                if (item.channel_post && item.channel_post.chat.username === 'fxnux' && item.channel_post.photo) {
+                    var photos = item.channel_post.photo;
+                    var fileId = photos[photos.length - 1].file_id;
+                    var caption = item.channel_post.caption || 'New Movie';
+                    var postId = item.channel_post.message_id;
+
+                    fetch('https://telegram.com' + BOT_TOKEN + '/getFile?file_id=' + fileId)
+                        .then(function(res) { return res.json(); })
+                        .then(function(fileData) {
+                            if (fileData.result && fileData.result.file_path) {
+                                var filePath = fileData.result.file_path;
+                                var imageUrl = 'https://telegram.com' + BOT_TOKEN + '/' + filePath;
+
+                                var exists = items.some(function(m) { return m.id === 'tg_' + postId; });
+                                
+                                if (!exists) {
+                                    items.push({
+                                        id: 'tg_' + postId,
+                                        title: caption,
+                                        img: imageUrl,
+                                        type: 'Movie',
+                                        region: 'Ethiopian',
+                                        year: '2026',
+                                        genre: 'Telegram',
+                                        rating: '8.5',
+                                        link: 'https://t.me' + postId
+                                    });
+                                    
+                                    if (typeof render === 'function') {
+                                        render();
+                                    }
+                                }
+                            }
+                        });
+                }
+            });
+        })
+        .catch(function(err) { console.error('Error:', err); });
+}
+
+fetchTelegramMovies();
+
 </script>
 </body>
 </html>
